@@ -28,5 +28,11 @@
       "32": "churuko.png",
       "48": "churuko.png",
       "128": "churuko.png"
-    }
+    },
+    "web_accessible_resources": [
+      {
+        "resources": ["*.woff"],
+        "matches": ["<all_urls>"]
+      }
+    ]
 }

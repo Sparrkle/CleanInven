@@ -52,8 +52,14 @@ function initialize()
 
 async function initUser()
 {
-    blockUserList._array = await LS.getItem('blockList');
+    var blockList = await LS.getItem('blockList');
+    if(blockList)
+        blockUserList._array = await LS.getItem('blockList');
+    else
+        blockUserList._array = [];
+
     $('#lvUsers').dxDataGrid({
+        height: '390px',
         showBorders: true,
         paging: {
             enabled: false,
@@ -95,7 +101,7 @@ async function initUser()
                 message: '닉네임은 중복이거나 공백일 수 없습니다.',
                 validationCallback: function(options) {  
                     item = blockUserList._array.find(o => o.__KEY__ != options.data.__KEY__ && o.name == options.value);
-                    return options.value != null && (item == null || blockUserList._array.length == 0);
+                    return options.value && (!item || blockUserList._array.length == 0);
                 }
             }],
         }, {
@@ -187,12 +193,26 @@ async function initSettings()
     if(!isEletricHide)
         isEletricHide = false;
 
+    var levelHide = await LS.getItem('levelHide');
+    if(!levelHide)
+        levelHide = 0;
+
     $('#swEletric').dxSwitch({
         value: isEletricHide,
         onValueChanged: function(e) {
             LS.setItem('isEletricHide', e.value);
         }
     }).dxSwitch('instance');
+
+    $("#tbLevel").dxNumberBox({
+        min: 0,
+        max: 100,
+        value: levelHide,
+        onChange: function(e)
+        {
+            LS.setItem('levelHide', parseInt(e.component._changedValue));
+        },
+    }).dxNumberBox("instance");
 }
 
 async function setItem(data)
@@ -211,7 +231,7 @@ async function setItem(data)
 async function removeData(key)
 {
     var blockList = await LS.getItem('blockList');
-    if(blockList == null)
+    if(!blockList)
       blockList = [];
   
     if(!blockList.find(o => o.__KEY__ == key))

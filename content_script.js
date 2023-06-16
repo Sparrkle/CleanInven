@@ -7,12 +7,24 @@ const LS = {
 
 var currentSiteItems = [];
 var blockStoredList = [];
+var isEletricHide = false;
+var levelHide = 0;
 
 initialize();
 
 async function initialize()
 {
-  blockStoredList = await LS.getItem('blockList');
+  var blockList = await LS.getItem('blockList');
+  if(blockList != null)
+    blockStoredList = blockList;
+
+  var tempIsEletricHide = await LS.getItem('isEletricHide');
+  if(tempIsEletricHide)
+    isEletricHide = tempIsEletricHide;
+
+  var tempLevelHide = await LS.getItem('levelHide');
+  if(tempLevelHide)
+    levelHide = tempLevelHide;
 }
 
 function isBlock(nickname, levelSrc)
@@ -22,14 +34,17 @@ function isBlock(nickname, levelSrc)
     var levelMatch = levelSrc.match('(?<=https:\/\/static.inven.co.kr\/image_2011\/member\/level\/1202\/lv)(.*?)(?=.gif)');
     if(levelMatch.length > 0)
     {
-      var level = parseInt(levelMatch[0]);
+      if(levelHide > 0)
+      {
+        var level = parseInt(levelMatch[0]);
+        if(level <= levelHide)
+          return true;
+      }
     }
   }
 
   if(blockStoredList.find(o => o.name == nickname))
-  {
     return true;
-  }
 
   return false;
 }
@@ -72,7 +87,8 @@ const observerCallback = function(mutationsList, observer) {
   for (const mutation of mutationsList) {
       var target = mutation.target;
       if (target.id === "board-electric-target") {
-        target.parentNode.style.display = "none";
+        if(isEletricHide)
+          target.parentNode.style.display = "none";
       }
       else if(target.classList.contains('user')) // 글
       {
@@ -101,7 +117,7 @@ const observerCallback = function(mutationsList, observer) {
       }
       else if(target.id === "powerbbsCmt2")
       {
-        if(commentObserver == null)
+        if(!commentObserver)
         {
           commentObserver = new MutationObserver(commentObserverCallback);
           commentObserver.observe(target, {childList: true, subtree: true });
@@ -121,7 +137,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     new MutationObserver(async function(mutations) {
       var nickName = document.querySelector('li.search').children[0].getAttribute('onclick').match(new RegExp("'([^']*)'"))[1];
       var blockList = await LS.getItem('blockList');
-      if(blockList == null)
+      if(!blockList)
         blockList = [];
 
       for(var i=0; i<mutations.length; i++)
@@ -142,7 +158,7 @@ document.addEventListener("DOMContentLoaded", async function() {
             blockEntirea.onclick = async function()
             {
               var blockList = await LS.getItem('blockList');
-              if(blockList == null)
+              if(!blockList)
                 blockList = [];
             
               if(!blockList.find(o => o.name == nickName))
@@ -159,13 +175,13 @@ document.addEventListener("DOMContentLoaded", async function() {
             blockEntirea.onclick = async function()
             {
               var blockList = await LS.getItem('blockList');
-              if(blockList == null)
+              if(!blockList)
                 blockList = [];
             
               if(blockList.find(o => o.name == nickName))
                 return;
             
-              blockList.push({__KEY__: uuidv4(), name: nickname});
+              blockList.push({__KEY__: uuidv4(), name: nickName});
               await LS.setItem('blockList', blockList);
             };
             var blockEntireText = document.createTextNode("로컬 차단");

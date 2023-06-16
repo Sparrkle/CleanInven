@@ -9,10 +9,12 @@
     <script src="popup.js"></script>
 </head>
   <body class="dx-viewport">
-    <div class="container" style="grid-template-rows: 1fr 45px; row-gap: 5px;">
-      <div id="tabControl" style="grid-row: 1; border: 1px #ddd;"></div>
-      <div style="grid-row: 2;">
-        <script type="text/javascript" src="js/button.prod.min.js" data-name="bmc-button" data-slug="churuko" data-color="#FFDD00" data-emoji="" data-font="Lato" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+    <div class="main-frame">
+      <div class="container" style="grid-template-rows: 1fr 45px; row-gap: 5px;">
+        <div id="tabControl" style="grid-row: 1; border: 1px #ddd;"></div>
+        <div style="grid-row: 2;">
+          <script type="text/javascript" src="js/button.prod.min.js" data-name="bmc-button" data-slug="churuko" data-color="#FFDD00" data-emoji="" data-font="Lato" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+        </div>
       </div>
     </div>
 
@@ -23,10 +25,15 @@
     </script>
 
     <template id="settingsTemplate">
-      <div class="container" style="padding-top: 5px; grid-template-rows: 30px 1fr; row-gap: 5px; margin: 5px;">
-        <div class="container" style="grid-row: 1; grid-template-columns: 1fr 45px; column-gap: 5px;">
+      <div class="container" style="padding-top: 5px; grid-template-rows: 30px 1px 30px 1fr; row-gap: 5px; margin: 5px;">
+        <div class="container" style="grid-row: 1; grid-template-columns: 1fr 45px; column-gap: 5px; align-items: center;">
           <div style="grid-column: 1;">전광판 숨기기</div>
           <div style="grid-column: 2;" id="swEletric"></div>
+        </div>
+        <div style="grid-row: 2; background-color: #cccccc;"></div>
+        <div class="container" style="grid-row: 3; grid-template-columns: 1fr 45px; column-gap: 5px; align-items: center;">
+          <div style="grid-column: 1;">특정 레벨 이하 사용자 숨기기</div>
+          <div style="grid-column: 2;" id="tbLevel"></div>
         </div>
       </div>
     </script>

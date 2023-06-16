@@ -1,5 +1,18 @@
+@font-face {
+    font-family: 'NexonLv2Gothic';
+    src: url(./fonts/NEXON_Lv2_Gothic.woff);
+}
+
 body {
-	font-family: 'NEXON Lv2 Gothic';
+	font-family: 'NEXONLv2Gothic';
+}
+
+.dx-widget {
+    font-family: 'NexonLv2Gothic' !important;
+}
+
+.dx-widget input {
+    font-family: 'NexonLv2Gothic' !important;
 }
 
 html
@@ -10,7 +23,11 @@ html
 
 .container {
     display: grid;
-    height: 420px;
+    height: 100%;
+}
+
+.main-frame {
+    height: 500px;
 }
 
 .dx-datagrid-search-panel {
