@@ -1,0 +1,26 @@
+body {
+	font-family: 'NEXON Lv2 Gothic';
+}
+
+html
+{
+    width: 450px;
+    height: 500px;
+}
+
+.container {
+    display: grid;
+    height: 420px;
+}
+
+.dx-datagrid-search-panel {
+    margin: 0 0 0 0px;
+}
+
+.dx-datagrid-header-panel .dx-toolbar {
+    margin-bottom: 5px;
+}
+
+.dx-toolbar .dx-toolbar-menu-container {
+    padding: 0 0 0 0px;
+}
