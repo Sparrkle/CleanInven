@@ -13,6 +13,15 @@ $(() => {
     initialize();
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    const links = document.querySelectorAll("a");
+
+    links.forEach(link => {
+        const location = link.getAttribute('href');
+        link.addEventListener('click', () => chrome.tabs.create({active: true, url: location}));
+    });
+});
+
 function initialize()
 {
     var tabDatas = [];
@@ -59,7 +68,7 @@ async function initUser()
         blockUserList._array = [];
 
     $('#lvUsers').dxDataGrid({
-        height: '390px',
+        height: '405px',
         showBorders: true,
         paging: {
             enabled: false,

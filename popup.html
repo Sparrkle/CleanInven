@@ -10,10 +10,18 @@
 </head>
   <body class="dx-viewport">
     <div class="main-frame">
-      <div class="container" style="grid-template-rows: 1fr 45px; row-gap: 5px;">
+      <div class="container" style="grid-template-rows: 1fr 30px; row-gap: 5px;">
         <div id="tabControl" style="grid-row: 1; border: 1px #ddd;"></div>
-        <div style="grid-row: 2;">
-          <script type="text/javascript" src="js/button.prod.min.js" data-name="bmc-button" data-slug="churuko" data-color="#FFDD00" data-emoji="" data-font="Lato" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+        <div class="container" style="grid-row: 2; grid-template-columns: 80px 30px 30px 1fr; column-gap: 10px; padding-bottom: 5px;">
+          <div class="image-icon" style="grid-column: 1; background-image:url('toss.png');">
+            <a href="https://toss.me/churuko"></a>
+          </div>
+          <div class="image-icon" style="grid-column: 2; background-image:url('buymeacoffee.png');">
+            <a href="https://www.buymeacoffee.com/churuko"></a>
+          </div>
+          <div class="image-icon" style="grid-column: 3; background-image:url('tistory.png');">
+            <a href="https://enosischuruko.tistory.com/category/Clean%20Inven"></a>
+          </div>
         </div>
       </div>
     </div>
@@ -33,7 +41,7 @@
         <div style="grid-row: 2; background-color: #cccccc;"></div>
         <div class="container" style="grid-row: 3; grid-template-columns: 1fr 45px; column-gap: 5px; align-items: center;">
           <div style="grid-column: 1;">특정 레벨 이하 사용자 숨기기</div>
-          <div style="grid-column: 2;" id="tbLevel"></div>
+          <div style="grid-column: 2; height: 25px;" id="tbLevel"></div>
         </div>
       </div>
     </script>
