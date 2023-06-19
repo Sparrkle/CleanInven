@@ -64,17 +64,17 @@ const commentObserverCallback = function(mutationsList, observer) {
         {
           var parent = comment.parentNode.parentNode;
           if(parent.parentNode.classList.contains('replyCmt'))
-            comment.parentNode.parentNode.style.display = "none";
+            comment.parentNode.style.display = "none";
           else
           {
-            if(parent.parentNode.nextSibling.classList.contains('replyCmt'))
+            if(comment.parentNode.nextSibling.classList.contains('replyCmt'))
             {
-              parent.replaceChildren();
-              parent.innerHTML = "블라인드 된 코멘트입니다.";
+              comment.replaceChildren();
+              comment.innerHTML = "블라인드 된 코멘트입니다.";
             }
             else
             {
-              comment.parentNode.parentNode.style.display = "none";
+              comment.parentNode.style.display = "none";
             }
           }
         }
