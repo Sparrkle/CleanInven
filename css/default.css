@@ -105,3 +105,46 @@ html
     border-radius: 4px;
     min-height: 25px;
 }
+
+.tagify {
+    width: 100%;
+    border: 0;
+}
+
+.tagify__input{
+  order: -1;
+  flex: 100%;
+  margin: 0;
+  border: 1px solid var(--tags-border-color);
+  transition: .1s;
+}
+
+.tagify__tag{
+    margin: 5px 5px 5px 0px;
+}
+
+.tagify__input:hover{ border-color:var(--tags-hover-border-color); }
+.tagify--outside.tagify--focus .tagify__input{
+  transition:0s;
+  border-color: var(--tags-focus-border-color);
+}
+
+.dx-button .dx-button-content {
+    padding: 3px;
+}
+
+.dx-popup-title.dx-toolbar.dx-toolbar-mini {
+    padding: 0px;
+    min-height: 0px;
+    height: 0px;
+    border-bottom: 0px;
+}
+
+.dx-colorbox-overlay .dx-popup-content {
+    padding: 10px 10px 10px 10px;
+}
+
+.dx-popup-bottom.dx-toolbar {
+    padding: 5px;
+    overflow: visible;
+}

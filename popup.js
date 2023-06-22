@@ -37,6 +37,18 @@ function initialize()
             initUser();
         }
     };
+    var tabKeyword = {
+        title: "키워드 차단",
+        template: function (itemData, itemIndex, element) {
+            var div = $("<div>")
+            div.appendTo(element);
+
+            var template = document.querySelector('#keywordTemplate');
+            div.append(template.content);
+
+            initKeyword();
+        }
+    };
     var tabSettings = {
         title: "설정",
         template: function (itemData, itemIndex, element) {
@@ -50,6 +62,7 @@ function initialize()
         }
     };
     tabDatas.push(tabUser);
+    tabDatas.push(tabKeyword);
     tabDatas.push(tabSettings);
     $("#tabControl").dxTabPanel({
         dataSource: tabDatas,
@@ -63,7 +76,7 @@ async function initUser()
 {
     var blockList = await LS.getItem('blockList');
     if(blockList)
-        blockUserList._array = await LS.getItem('blockList');
+        blockUserList._array = blockList;
     else
         blockUserList._array = [];
 
@@ -125,11 +138,6 @@ async function initUser()
         editorOptions: {
             searchEnabled: false,
             showClearButton: false,
-            onKeyDown: function (e) {
-                if (e.event.key == 'Delete') {
-                    debugger;
-                }
-            },
         },
         toolbar: {
             items:
@@ -144,33 +152,41 @@ async function initUser()
                     margin: 0,
                 },
             },
-            // {
-            //     locateInMenu: 'always',
-            //     widget: 'dxButton',
-            //     options: {
-            //         icon: 'export',
-            //         text: '엑셀로 내보내기',
-            //         onClick() {
-            //             if(blockUserList._array.length <= 0)
-            //             {
-            //                 sketchup.alert("사용자가 없습니다.");
-            //                 return;
-            //             }
-            //         },
-            //     },
-            // },{
-            //     locateInMenu: 'always',
-            //     widget: 'dxButton',
-            //     options: {
-            //         locateInMenu: 'always',
-            //         icon: 'import',
-            //         text: '엑셀에서 불러오기',
-            //         onClick() {
+            {
+                locateInMenu: 'always',
+                widget: 'dxButton',
+                options: {
+                    icon: 'export',
+                    text: '데이터 내보내기',
+                    onClick() {
+                        if(blockUserList._array.length <= 0)
+                        {
+                            sketchup.alert("사용자가 없습니다.");
+                            return;
+                        }
+                    },
+                },
+            },{
+                locateInMenu: 'always',
+                widget: 'dxButton',
+                options: {
+                    locateInMenu: 'always',
+                    icon: 'import',
+                    text: '데이터 불러오기',
+                    onClick() {
                         
-            //         },
-            //     },
-            // }
+                    },
+                },
+            }
             ],
+        },
+        onEditorPreparing: function(e) {  
+            if (e.parentType == 'dataRow') {  
+                if(e.dataField == 'memo')
+                    e.editorOptions.maxLength = 32;
+                else if(e.dataField == 'name')
+                    e.editorOptions.maxLength = 16; 
+            }
         },
         onCellPrepared: function (e) {
             if (e.rowType != "data")
@@ -194,6 +210,52 @@ async function initUser()
             }
         },
     }).dxDataGrid("instance");
+}
+
+async function initKeyword()
+{
+    $('#svKeywords').dxScrollView({
+        scrollByThumb: true,
+        showScrollbar: 'onScroll',
+    }).dxScrollView('instance');
+
+    var isFilterContent = await LS.getItem('isFilterContent');
+    if(!isFilterContent)
+        isFilterContent = false;
+
+    $('#swContentKeyword').dxSwitch({
+        value: isFilterContent,
+        onValueChanged: function(e) {
+            LS.setItem('isFilterContent', e.value);
+        }
+    }).dxSwitch('instance');
+
+    $("#btnResetKeyword").dxButton({
+        text: "키워드 전체 삭제",
+        type: "danger",
+        onClick: function() {
+            var result = DevExpress.ui.dialog.confirm("키워드를 모두 삭제하시겠습니까?");
+            result.done(function(dialogResult) {
+                if(dialogResult)
+                {
+                    LS.setItem('keywordList', []);
+                    tagify.removeAllTags();
+                }
+            });
+        }
+    });
+
+    var keywordList = await LS.getItem('keywordList');
+    if(!keywordList)
+        keywordList = [];
+
+    const input = document.querySelector('input[name=ipKeywords]');
+    var tagify = new Tagify(input); // initialize Tagify
+    tagify.addTags(keywordList);
+
+    tagify.on('add', function() {
+        LS.setItem('keywordList', tagify.value);
+    });
 }
 
 async function initSettings()

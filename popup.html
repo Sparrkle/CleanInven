@@ -3,9 +3,11 @@
   <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="css/dx.light.css" />
+    <link rel="stylesheet" type="text/css" href="css/tagify.css" />
     <link rel="stylesheet" type="text/css" href="css/default.css" />
     <script src="js/jquery.js"></script>
     <script src="js/dx.all.js"></script>
+    <script src="js/tagify.min.js"></script>
     <script src="popup.js"></script>
 </head>
   <body class="dx-viewport">
@@ -29,6 +31,25 @@
     <template id="userTemplate">
       <div class="container" style="padding-top: 5px; grid-template-rows: 1fr; row-gap: 5px;">
         <div id="lvUsers" style="grid-row: 1; overflow-y: auto; margin: 5px;"></div>
+      </div>
+    </script>
+
+    <template id="keywordTemplate">
+      <div class="container" style="padding-top: 5px; grid-template-rows: 30px 1px 30px 1fr; row-gap: 5px; margin: 5px;">
+        <div class="container" style="grid-row: 1; grid-template-columns: 1fr 45px; column-gap: 5px; align-items: center;">
+          <div style="grid-column: 1;">본문 키워드 필터링</div>
+          <div style="grid-column: 2;" id="swContentKeyword"></div>
+        </div>
+        <div style="grid-row: 2; background-color: #cccccc;"></div>
+        <div class="container" style="grid-row: 3; grid-template-columns: 1fr 120px; column-gap: 5px; align-items: center;">
+          <div style="grid-column: 1;">키워드 관리</div>
+          <div style="grid-column: 2;" id="btnResetKeyword"></div>
+        </div>
+        <div id="svKeywords" style="grid-row: 4; height: 320px;">
+          <div id="svKeywordsContent">
+            <input name="ipKeywords" style="grid-row: 3;" class='tagify--outside' placeholder="키워드를 입력해주세요.">
+          </div>
+        </div>
       </div>
     </script>
 
