@@ -35,17 +35,27 @@
     </script>
 
     <template id="keywordTemplate">
-      <div class="container" style="padding-top: 5px; grid-template-rows: 30px 1px 30px 1fr; row-gap: 5px; margin: 5px;">
+      <div class="container" style="padding-top: 5px; grid-template-rows: 30px 1px 30px 1px 30px 1px 30px 1fr; row-gap: 5px; margin: 5px;">
         <div class="container" style="grid-row: 1; grid-template-columns: 1fr 45px; column-gap: 5px; align-items: center;">
+          <div style="grid-column: 1;">제목 키워드 필터링</div>
+          <div style="grid-column: 2;" id="swTitleKeyword"></div>
+        </div>
+        <div style="grid-row: 2; background-color: #cccccc;"></div>
+        <div class="container" style="grid-row: 3; grid-template-columns: 1fr 45px; column-gap: 5px; align-items: center;">
           <div style="grid-column: 1;">본문 키워드 필터링</div>
           <div style="grid-column: 2;" id="swContentKeyword"></div>
         </div>
-        <div style="grid-row: 2; background-color: #cccccc;"></div>
-        <div class="container" style="grid-row: 3; grid-template-columns: 1fr 120px; column-gap: 5px; align-items: center;">
+        <div style="grid-row: 4; background-color: #cccccc;"></div>
+        <div class="container" style="grid-row: 5; grid-template-columns: 1fr 45px; column-gap: 5px; align-items: center;">
+          <div style="grid-column: 1;">댓글 키워드 필터링</div>
+          <div style="grid-column: 2;" id="swCommentKeyword"></div>
+        </div>
+        <div style="grid-row: 6; background-color: #cccccc;"></div>
+        <div class="container" style="grid-row: 7; grid-template-columns: 1fr 120px; column-gap: 5px; align-items: center;">
           <div style="grid-column: 1;">키워드 관리</div>
           <div style="grid-column: 2;" id="btnResetKeyword"></div>
         </div>
-        <div id="svKeywords" style="grid-row: 4; height: 320px;">
+        <div id="svKeywords" style="grid-row: 8; height: 245px;">
           <div id="svKeywordsContent">
             <input name="ipKeywords" style="grid-row: 3;" class='tagify--outside' placeholder="키워드를 입력해주세요.">
           </div>
@@ -54,7 +64,7 @@
     </script>
 
     <template id="settingsTemplate">
-      <div class="container" style="padding-top: 5px; grid-template-rows: 30px 1px 30px 1fr; row-gap: 5px; margin: 5px;">
+      <div class="container" style="padding-top: 5px; grid-template-rows: 30px 1px 30px 1px 30px 1fr; row-gap: 5px; margin: 5px;">
         <div class="container" style="grid-row: 1; grid-template-columns: 1fr 45px; column-gap: 5px; align-items: center;">
           <div style="grid-column: 1;">전광판 숨기기</div>
           <div style="grid-column: 2;" id="swEletric"></div>
@@ -63,6 +73,11 @@
         <div class="container" style="grid-row: 3; grid-template-columns: 1fr 45px; column-gap: 5px; align-items: center;">
           <div style="grid-column: 1;">특정 레벨 이하 사용자 숨기기</div>
           <div style="grid-column: 2; height: 25px;" id="tbLevel"></div>
+        </div>
+        <div style="grid-row: 4; background-color: #cccccc;"></div>
+        <div class="container" style="grid-row: 5; grid-template-columns: 1fr 1fr; column-gap: 5px; align-items: center;">
+          <div style="grid-column: 1;" id="btnExportSetting"></div>
+          <div style="grid-column: 2;" id="btnImportSetting"></div>
         </div>
       </div>
     </script>

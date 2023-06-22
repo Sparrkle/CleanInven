@@ -9,6 +9,11 @@ const LS = {
     removeItems: keys => chrome.storage.local.remove(keys),
 };
 
+var lvUsers;
+var tagify;
+var swTitleKeyword, swContentKeyword, swCommentKeyword, swEletric;
+var tbLevel;
+
 $(() => {
     initialize();
 });
@@ -80,8 +85,8 @@ async function initUser()
     else
         blockUserList._array = [];
 
-    $('#lvUsers').dxDataGrid({
-        height: '405px',
+    lvUsers = $('#lvUsers').dxDataGrid({
+        height: '400px',
         showBorders: true,
         paging: {
             enabled: false,
@@ -161,9 +166,17 @@ async function initUser()
                     onClick() {
                         if(blockUserList._array.length <= 0)
                         {
-                            sketchup.alert("사용자가 없습니다.");
+                            DevExpress.ui.dialog.alert("차단된 사용자가 없습니다.");
                             return;
                         }
+
+                        downloadObjectAsJson(blockUserList._array.map(user =>
+                        {
+                            var data = {};
+                            data.name = user.name;
+                            data.memo = user.memo;
+                            return data;
+                        }), "BlockUsers");
                     },
                 },
             },{
@@ -174,7 +187,48 @@ async function initUser()
                     icon: 'import',
                     text: '데이터 불러오기',
                     onClick() {
-                        
+                        var fileDialog = $('<input type="file" accept=".json">');
+                        fileDialog.trigger("click");
+                        fileDialog.on("change", function(e)
+                        {
+                            try
+                            {
+                                var file = $(this)[0].files[0];
+
+                                const reader = new FileReader();
+                                reader.addEventListener('load', (event) => {
+                                    try
+                                    {
+                                        var blockUsers = JSON.parse(event.target.result).map(o =>
+                                        {
+                                            o.__KEY__ = uuidv4(); 
+                                            return o;
+                                        });
+                                        if(Array.isArray(blockUsers))
+                                        {
+                                            blockUserList._array = blockUsers;
+                                            LS.setItem('blockList', blockUsers);
+        
+                                            lvUsers.refresh();
+                                        }
+                                        else
+                                            throw '지원되지 않는 파일입니다.';
+                                    }
+                                    catch(e)
+                                    {
+                                        DevExpress.ui.dialog.alert("데이터 불러오기 중 오류가 발생했습니다.");
+                                        loadBlockList();
+                                    }
+                                });
+                                reader.readAsText(file);
+                            }
+                            catch(e)
+                            {
+                                DevExpress.ui.dialog.alert("데이터 불러오기 중 오류가 발생했습니다.");
+                                console.alert(e);
+                                loadBlockList();
+                            }
+                        });
                     },
                 },
             }
@@ -209,6 +263,32 @@ async function initUser()
                 }
             }
         },
+        onFocusedCellChanging: function(e) {
+            if (e.event.key == "Enter")
+            {
+                if (e.newColumnIndex == 2 || (e.newColumnIndex == 1 && e.prevColumnIndex == 1)) {
+                    if(e.newRowIndex + 2 > blockUserList._array.length)
+                    {
+                        e.cancel = true;
+                        window.setTimeout(function() {  
+                            lvUsers.closeEditCell();
+                            lvUsers.addRow(); 
+                        }, 0);
+                    }
+                    else
+                    {
+                        e.newRowIndex = e.newRowIndex + 1;
+                        e.newColumnIndex = 0;
+                    }
+                }
+            }
+
+            if(e.newColumnIndex == 2)
+            {
+                e.newRowIndex = e.newRowIndex + 1;
+                e.newColumnIndex = 0;
+            }
+		},
     }).dxDataGrid("instance");
 }
 
@@ -219,14 +299,36 @@ async function initKeyword()
         showScrollbar: 'onScroll',
     }).dxScrollView('instance');
 
+    var isFilterTitle = await LS.getItem('isFilterTitle');
+    if(!isFilterTitle)
+        isFilterTitle = false;
+
     var isFilterContent = await LS.getItem('isFilterContent');
     if(!isFilterContent)
         isFilterContent = false;
 
-    $('#swContentKeyword').dxSwitch({
+    var isFilterComment = await LS.getItem('isFilterComment');
+    if(!isFilterComment)
+        isFilterComment = false;
+
+    swTitleKeyword = $('#swTitleKeyword').dxSwitch({
+        value: isFilterTitle,
+        onValueChanged: function(e) {
+            LS.setItem('isFilterTitle', e.value);
+        }
+    }).dxSwitch('instance');
+
+    swContentKeyword = $('#swContentKeyword').dxSwitch({
         value: isFilterContent,
         onValueChanged: function(e) {
             LS.setItem('isFilterContent', e.value);
+        }
+    }).dxSwitch('instance');
+
+    swCommentKeyword = $('#swCommentKeyword').dxSwitch({
+        value: isFilterComment,
+        onValueChanged: function(e) {
+            LS.setItem('isFilterComment', e.value);
         }
     }).dxSwitch('instance');
 
@@ -250,12 +352,15 @@ async function initKeyword()
         keywordList = [];
 
     const input = document.querySelector('input[name=ipKeywords]');
-    var tagify = new Tagify(input); // initialize Tagify
+    tagify = new Tagify(input); // initialize Tagify
     tagify.addTags(keywordList);
 
     tagify.on('add', function() {
         LS.setItem('keywordList', tagify.value);
     });
+    tagify.on('remove', function() {
+        LS.setItem('keywordList', tagify.value);
+    })
 }
 
 async function initSettings()
@@ -268,14 +373,14 @@ async function initSettings()
     if(!levelHide)
         levelHide = 0;
 
-    $('#swEletric').dxSwitch({
+    swEletric = $('#swEletric').dxSwitch({
         value: isEletricHide,
         onValueChanged: function(e) {
             LS.setItem('isEletricHide', e.value);
         }
     }).dxSwitch('instance');
 
-    $("#tbLevel").dxNumberBox({
+    tbLevel = $("#tbLevel").dxNumberBox({
         min: 0,
         max: 100,
         value: levelHide,
@@ -284,6 +389,113 @@ async function initSettings()
             LS.setItem('levelHide', parseInt(e.component._changedValue));
         },
     }).dxNumberBox("instance");
+
+    $("#btnExportSetting").dxButton({
+        text: "설정 데이터 내보내기",
+        onClick: async function() {
+            var settingData = {};
+            settingData.isEletricHide = await LS.getItem('isEletricHide');
+            settingData.isFilterTitle = await LS.getItem('isFilterTitle');
+            settingData.isFilterContent = await LS.getItem('isFilterContent');
+            settingData.isFilterComment = await LS.getItem('isFilterComment');
+            settingData.keywordList = await LS.getItem('keywordList');
+            settingData.levelHide = await LS.getItem('levelHide');
+
+            var blockUsers = await LS.getItem('blockList');
+            settingData.blockUsers = blockUsers.map(user =>
+            {
+                var data = {};
+                data.name = user.name;
+                data.memo = user.memo;
+                return data;
+            });
+            downloadObjectAsJson(settingData, "Settings");
+        }
+    });
+
+    $("#btnImportSetting").dxButton({
+        text: "설정 데이터 불러오기",
+        onClick: function() {
+            var fileDialog = $('<input type="file" accept=".json">');
+            fileDialog.trigger("click");
+            fileDialog.on("change", function(e)
+            {
+                try
+                {
+                    var file = $(this)[0].files[0];
+
+                    const reader = new FileReader();
+                    reader.addEventListener('load', (event) => {
+                        try
+                        {
+                            var settings = JSON.parse(event.target.result);
+                            var blockUsers = settings.blockUsers.map(o =>
+                            {
+                               o.__KEY__ = uuidv4(); 
+                               return o;
+                            });
+    
+                            swEletric.option('value', settings.isEletricHide);
+                            swTitleKeyword.option('value', settings.isFilterTitle);
+                            swContentKeyword.option('value', settings.isFilterContent);
+                            swCommentKeyword.option('value', settings.isFilterComment);
+    
+                            tagify.removeAllTags();
+                            tagify.addTags(settings.keywordList);
+    
+                            tbLevel.option('value', settings.levelHide ? settings.levelHide : 0);
+    
+                            blockUserList._array = blockUsers;
+    
+                            LS.setItem('isEletricHide', settings.isEletricHide);
+                            LS.setItem('isFilterTitle', settings.isFilterTitle);
+                            LS.setItem('isFilterContent', settings.isFilterContent);
+                            LS.setItem('isFilterComment', settings.isFilterComment);
+                            LS.setItem('keywordList', settings.keywordList);
+                            LS.setItem('levelHide', settings.levelHide);
+                            LS.setItem('blockList', blockUsers);
+    
+                            lvUsers.refresh();
+                        }
+                        catch(e)
+                        {
+                            DevExpress.ui.dialog.alert("설정 불러오기 중 오류가 발생했습니다.");
+                            loadAllData();
+                        }
+                    });
+                    reader.readAsText(file);
+                }
+                catch(e)
+                {
+                    DevExpress.ui.dialog.alert("설정 불러오기 중 오류가 발생했습니다.");
+                    loadAllData();
+                }
+            });
+        }
+    });
+}
+
+async function loadBlockList()
+{
+    blockUserList._array = await LS.getItem('blockList');
+    lvUsers.refresh();
+}
+
+async function loadAllData()
+{
+    swEletric.option('value', await LS.getItem('isEletricHide'));
+    swTitleKeyword.option('value', await LS.getItem('isFilterTitle'));
+    swContentKeyword.option('value', await LS.getItem('isFilterContent'));
+    swCommentKeyword.option('value', await LS.getItem('isFilterComment'));
+
+    tagify.removeAllTags();
+    tagify.addTags(await LS.getItem('keywordList'));
+
+    var levelHide = await LS.getItem('levelHide');
+    tbLevel.option('value', levelHide ? levelHide : 0);
+
+    blockUserList._array = await LS.getItem('blockList');
+    lvUsers.refresh();
 }
 
 async function setItem(data)
@@ -310,4 +522,20 @@ async function removeData(key)
   
     blockList = blockList.filter(o => o.__KEY__ != key);
     await LS.setItem('blockList', blockList);
+}
+
+function downloadObjectAsJson(exportObj, exportName){
+    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
+    var downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href",     dataStr);
+    downloadAnchorNode.setAttribute("download", exportName + ".json");
+    document.body.appendChild(downloadAnchorNode); // required for firefox
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+}
+
+function uuidv4() {
+    return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+        (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    );
 }

@@ -148,3 +148,7 @@ html
     padding: 5px;
     overflow: visible;
 }
+
+.dx-toolbar-text-auto-hide .dx-button .dx-button-content {
+    padding: 3px;
+}

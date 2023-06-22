@@ -7,116 +7,51 @@ const LS = {
 
 var currentSiteItems = [];
 var blockStoredList = [];
+var keywordStoredList = [];
 var isEletricHide = false;
+var isFilterTitle = false;
+var isFilterContent = false;
+var isFilterComment = false;
 var levelHide = 0;
 var isMobile = false;
+
+var currentUrl = window.location.href;
+if(currentUrl.includes("m.inven.co.kr")) // 모바일 용
+  isMobile = true;
 
 initialize();
 
 async function initialize()
 {
-  var blockList = await LS.getItem('blockList');
+  var items = await LS.getAllItems();
+
+  var blockList = items.blockList;
   if(blockList != null)
     blockStoredList = blockList;
 
-  var tempIsEletricHide = await LS.getItem('isEletricHide');
+  var keywordList = items.keywordList;
+  if(keywordList != null)
+    keywordStoredList = keywordList.map(o => o.value);
+
+  var tempIsEletricHide = items.isEletricHide;
   if(tempIsEletricHide)
     isEletricHide = tempIsEletricHide;
 
-  var tempLevelHide = await LS.getItem('levelHide');
+  var tempIsFilterTitle = items.isFilterTitle;
+  if(tempIsFilterTitle)
+    isFilterTitle = tempIsFilterTitle;
+
+  var tempIsFilterContent= items.isFilterContent;
+  if(tempIsFilterContent)
+    isFilterContent = tempIsFilterContent;
+
+  var tempIsFilterComment = items.isFilterComment;
+  if(tempIsFilterComment)
+    isFilterComment = tempIsFilterComment;
+
+  var tempLevelHide = items.levelHide;
   if(tempLevelHide)
     levelHide = tempLevelHide;
-
-  var currentUrl = window.location.href;
-  if(currentUrl.includes("m.inven.co.kr")) // 모바일 용
-    isMobile = true;
-
-  var commentObserver;
-  const commentObserverCallback = function(mutationsList, observer) {
-    for (const mutation of mutationsList) {
-      var target = mutation.target;
-      if(target.classList.contains('commentList1'))
-      {
-        var comments = target.querySelectorAll('.cmtOne');
-        comments.forEach(comment =>
-        {
-          var levelSrc = comment.querySelector('.lvicon').src;
-          var userNickname = comment.querySelector('.nickname').textContent;
-          if(isBlock(userNickname, levelSrc))
-          {
-            var parent = comment.parentNode.parentNode;
-            if(parent.parentNode.classList.contains('replyCmt'))
-              comment.parentNode.style.display = "none";
-            else
-            {
-              if(comment.parentNode.nextSibling.classList.contains('replyCmt'))
-              {
-                comment.replaceChildren();
-                comment.innerHTML = "블라인드 된 코멘트입니다.";
-              }
-              else
-              {
-                comment.parentNode.style.display = "none";
-              }
-            }
-          }
-        });
-      }
-    }
-  };
-  const observerCallback = function(mutationsList, observer) {
-    for (const mutation of mutationsList) {
-        var target = mutation.target;
-        if (target.id === "board-electric-target") {
-          if(isEletricHide)
-            target.parentNode.style.display = "none";
-        }
-        else if(target.classList.contains('user')) // 글
-        {
-          if(target.children.length >= 2)
-          {
-            var levelSrc = target.children[0].src;
-            var userNickname = target.textContent.replace(/\s/g, "");
-            if(isBlock(userNickname, levelSrc))
-                target.parentNode.style.display = "none";
-          }
-        }
-        else if(target.id === 'bodyMain') // 모바일용 글
-        {
-          var articles = target.querySelectorAll('.user_info');
-          articles.forEach(article =>
-          {
-            var level = article.querySelector('.lv').textContent.replace("Lv.", "");
-            var userNickname = article.querySelector('.nick').textContent.replace(/\s/g, "");
-            if(isBlock(userNickname, level))
-              article.parentNode.parentNode.style.display = "none";
-          })
-        }
-        else if(target.classList.contains('nickname'))
-        {
-          var li = target.parentNode.parentNode;
-          var ul = li.parentNode;
-          if(ul.parentNode.id == "board-electric-target")
-          {
-            var nickname = target.textContent.match('\\[(.*?)\\]')[1];
-            if(isBlock(nickname, null))
-            {
-              ul.removeChild(li);
-            }
-          }
-        }
-        else if(target.id === "powerbbsCmt2")
-        {
-          if(!commentObserver)
-          {
-            commentObserver = new MutationObserver(commentObserverCallback);
-            commentObserver.observe(target, {childList: true, subtree: true });
-          }
-        }
-    }
-  };
-  const observer = new MutationObserver(observerCallback);
-  observer.observe(document.documentElement, {childList: true, subtree: true });
   
   document.addEventListener("DOMContentLoaded", async function() {
   
@@ -249,6 +184,14 @@ async function initialize()
   });
 }
 
+function isFiltering(content)
+{
+  if(keywordStoredList.find(o => o == content.match(o)))
+    return true;
+
+  return false;
+}
+
 function isBlock(nickname, levelSrc)
 {
   if(levelSrc != null)
@@ -289,3 +232,208 @@ function uuidv4() {
     (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
   );
 }
+
+var commentObserver;
+const commentObserverCallback = function(mutationsList, observer) {
+  for (const mutation of mutationsList) {
+    var target = mutation.target;
+    if(target.classList.contains('commentList1'))
+    {
+      var comments = target.querySelectorAll('.cmtOne');
+      comments.forEach(comment =>
+      {
+        var levelSrc = comment.querySelector('.lvicon').src;
+        var userNickname = comment.querySelector('.nickname').textContent;
+        if(isBlock(userNickname, levelSrc))
+        {
+          var parent = comment.parentNode.parentNode;
+          if(parent.parentNode.classList.contains('replyCmt') || parent.parentNode.classList.contains('bestComment'))
+            comment.parentNode.style.display = "none";
+          else
+          {
+            if(comment.parentNode.nextSibling.classList.contains('replyCmt'))
+            {
+              comment.replaceChildren();
+              comment.innerHTML = "블라인드 된 코멘트입니다.";
+            }
+            else
+            {
+              comment.parentNode.style.display = "none";
+            }
+          }
+        }
+        else
+        {
+          if(isFilterComment)
+          {
+            var contentNode = comment.querySelector('.content');
+            var commentContent = contentNode.textContent;
+            if(isFiltering(commentContent))
+            {
+              var blindContent = document.createElement('div');
+              blindContent.classList.add('cleaninven-blind-content');
+              blindContent.style.display = "none";
+
+              var nodes = contentNode.childNodes;
+              while(nodes.length > 0)
+              {
+                var node = nodes[0];
+                blindContent.appendChild(node);
+              }
+
+              var blindAlertContent = document.createElement('div');
+              blindAlertContent.classList.add('cleaninven-blind-alert');
+
+              var blindSpan = document.createElement('span');
+              blindSpan.style.color = 'silver';
+              blindSpan.textContent = "필터링에 감지되어 블라인드 되었습니다. ";
+              blindAlertContent.appendChild(blindSpan);
+
+              var blindA = document.createElement('a');
+              blindA.setAttribute('href', 'javascript:nothing();');
+              blindA.text = '[내용보기]';
+              blindA.nodeName = "cleanInven";
+              blindA.onclick = async function()
+              {
+                var blindAlert = this.parentNode;
+                var blindContent = this.parentNode.parentNode.querySelector('.cleaninven-blind-content');
+
+                blindAlert.style.display = "none";
+                blindContent.style.display = "";
+              }
+              blindAlertContent.appendChild(blindA);
+
+              contentNode.appendChild(blindAlertContent);
+              contentNode.appendChild(blindContent);
+            }
+          }
+        }
+      });
+    }
+  }
+};
+const observerCallback = function(mutationsList, observer) {
+  for (const mutation of mutationsList) {
+      var target = mutation.target;
+      if (target.id === "board-electric-target") {
+        if(isEletricHide)
+          target.parentNode.style.display = "none";
+      }
+      else if(target.classList.contains('articleContent')) // 본문
+      {
+        if(isFilterContent)
+        {
+          var blindContent = target.querySelector('.powerbbsBodyBlind');
+          if(blindContent) // 이미 블라인드 된 글
+            continue;
+
+          var targetNode;
+          if(isMobile)
+            targetNode = target.querySelector('#imageCollectDiv');
+          else
+            targetNode = target.querySelector('#powerbbsContent');
+
+          if(targetNode != null)
+          {
+            if(targetNode.querySelector('.cleaninven-blind-content')) // 이미 블라인드됨
+              continue;
+            var articleText = targetNode.textContent;
+            if(isFiltering(articleText))
+            {
+              var blindContent = document.createElement('div');
+              blindContent.classList.add('cleaninven-blind-content');
+              blindContent.style.display = "none";
+
+              var nodes = targetNode.childNodes;
+              while(nodes.length > 0)
+              {
+                var node = nodes[0];
+                blindContent.appendChild(node);
+              }
+
+              var blindAlertContent = document.createElement('div');
+              blindAlertContent.classList.add('cleaninven-blind-alert');
+
+              var blindSpan = document.createElement('span');
+              blindSpan.style.color = 'red';
+              blindSpan.textContent = "필터링에 감지되어 블라인드 되었습니다. ";
+              blindAlertContent.appendChild(blindSpan);
+
+              var blindA = document.createElement('a');
+              blindA.setAttribute('href', 'javascript:nothing();');
+              blindA.style.color = 'blue';
+              blindA.text = '[내용보기]';
+              blindA.nodeName = "cleanInven";
+              blindA.onclick = async function()
+              {
+                var blindAlert = document.querySelector('.cleaninven-blind-alert');
+                var blindContent = document.querySelector('.cleaninven-blind-content');
+
+                blindAlert.style.display = "none";
+                blindContent.style.display = "";
+              }
+              blindAlertContent.appendChild(blindA);
+
+              targetNode.appendChild(blindAlertContent);
+              targetNode.appendChild(blindContent);
+            }
+          }
+        }
+      }
+      else if(target.classList.contains('user')) // 글
+      {
+        var levelSrc = target.children[0].src;
+        var userNickname = target.textContent.replace(/\s/g, "");
+        if(isBlock(userNickname, levelSrc))
+          target.parentNode.style.display = "none";
+        else if(isFilterTitle)
+        {
+          var subject = target.parentNode.querySelector('.subject-link');
+          var title = [...subject.childNodes].filter(o => o.nodeType === Node.TEXT_NODE || o.nodeName == 'B').map(o => o.textContent.trim()).join('');
+          if(isFiltering(title))
+            target.parentNode.style.display = "none";
+        }
+      }
+      else if(target.classList.contains('li-wrap')) // 모바일용 글
+      {
+        var levelNode = target.querySelector('.lv');
+        if(levelNode != null)
+        {
+          var level = levelNode.textContent.replace("Lv.", "");
+          var userNickname = target.querySelector('.nick').textContent.replace(/\s/g, "");
+          if(isBlock(userNickname, level))
+            target.parentNode.style.display = "none";
+          else if(isFilterTitle)
+          {
+            var subject = target.querySelector('.subject');
+            var title = subject.textContent;
+            if(isFiltering(title))
+              target.parentNode.style.display = "none";
+          }
+        }
+      }
+      else if(target.classList.contains('nickname'))
+      {
+        var li = target.parentNode.parentNode;
+        var ul = li.parentNode;
+        if(ul.parentNode.id == "board-electric-target")
+        {
+          var nickname = target.textContent.match('\\[(.*?)\\]')[1];
+          if(isBlock(nickname, null))
+          {
+            ul.removeChild(li);
+          }
+        }
+      }
+      else if(target.id === "powerbbsCmt2")
+      {
+        if(!commentObserver)
+        {
+          commentObserver = new MutationObserver(commentObserverCallback);
+          commentObserver.observe(target, {childList: true, subtree: true });
+        }
+      }
+  }
+};
+const observer = new MutationObserver(observerCallback);
+observer.observe(document.documentElement, {childList: true, subtree: true });
