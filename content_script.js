@@ -186,7 +186,7 @@ async function initialize()
 
 function isFiltering(content)
 {
-  if(keywordStoredList.find(o => o == content.match(o)))
+  if(keywordStoredList.find(o => content.includes(o)))
     return true;
 
   return false;
