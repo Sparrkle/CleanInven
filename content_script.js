@@ -242,69 +242,73 @@ const commentObserverCallback = function(mutationsList, observer) {
       var comments = target.querySelectorAll('.cmtOne');
       comments.forEach(comment =>
       {
-        var levelSrc = comment.querySelector('.lvicon').src;
-        var userNickname = comment.querySelector('.nickname').textContent;
-        if(isBlock(userNickname, levelSrc))
+        var levelIcon = comment.querySelector('.lvicon');
+        if(levelIcon) // 코멘트가 삭제되거나.. 등등 레벨을 불러올 수 없는 경우 코멘트가 없음.
         {
-          var parent = comment.parentNode.parentNode;
-          if(parent.parentNode.classList.contains('replyCmt') || parent.parentNode.classList.contains('bestComment'))
-            comment.parentNode.style.display = "none";
-          else
+          var levelSrc = levelIcon.src;
+          var userNickname = comment.querySelector('.nickname').textContent;
+          if(isBlock(userNickname, levelSrc))
           {
-            if(comment.parentNode.nextSibling.classList.contains('replyCmt'))
-            {
-              comment.replaceChildren();
-              comment.innerHTML = "블라인드 된 코멘트입니다.";
-            }
+            var parent = comment.parentNode.parentNode;
+            if(parent.parentNode.classList.contains('replyCmt') || parent.parentNode.classList.contains('bestComment'))
+              comment.parentNode.style.display = "none";
             else
             {
-              comment.parentNode.style.display = "none";
+              if(comment.parentNode.nextSibling.classList.contains('replyCmt'))
+              {
+                comment.replaceChildren();
+                comment.innerHTML = "블라인드 된 코멘트입니다.";
+              }
+              else
+              {
+                comment.parentNode.style.display = "none";
+              }
             }
           }
-        }
-        else
-        {
-          if(isFilterComment)
+          else
           {
-            var contentNode = comment.querySelector('.content');
-            var commentContent = contentNode.textContent;
-            if(isFiltering(commentContent))
+            if(isFilterComment)
             {
-              var blindContent = document.createElement('div');
-              blindContent.classList.add('cleaninven-blind-content');
-              blindContent.style.display = "none";
-
-              var nodes = contentNode.childNodes;
-              while(nodes.length > 0)
+              var contentNode = comment.querySelector('.content');
+              var commentContent = contentNode.textContent;
+              if(isFiltering(commentContent))
               {
-                var node = nodes[0];
-                blindContent.appendChild(node);
+                var blindContent = document.createElement('div');
+                blindContent.classList.add('cleaninven-blind-content');
+                blindContent.style.display = "none";
+  
+                var nodes = contentNode.childNodes;
+                while(nodes.length > 0)
+                {
+                  var node = nodes[0];
+                  blindContent.appendChild(node);
+                }
+  
+                var blindAlertContent = document.createElement('div');
+                blindAlertContent.classList.add('cleaninven-blind-alert');
+  
+                var blindSpan = document.createElement('span');
+                blindSpan.style.color = 'silver';
+                blindSpan.textContent = "필터링에 감지되어 블라인드 되었습니다. ";
+                blindAlertContent.appendChild(blindSpan);
+  
+                var blindA = document.createElement('a');
+                blindA.setAttribute('href', 'javascript:nothing();');
+                blindA.text = '[내용보기]';
+                blindA.nodeName = "cleanInven";
+                blindA.onclick = async function()
+                {
+                  var blindAlert = this.parentNode;
+                  var blindContent = this.parentNode.parentNode.querySelector('.cleaninven-blind-content');
+  
+                  blindAlert.style.display = "none";
+                  blindContent.style.display = "";
+                }
+                blindAlertContent.appendChild(blindA);
+  
+                contentNode.appendChild(blindAlertContent);
+                contentNode.appendChild(blindContent);
               }
-
-              var blindAlertContent = document.createElement('div');
-              blindAlertContent.classList.add('cleaninven-blind-alert');
-
-              var blindSpan = document.createElement('span');
-              blindSpan.style.color = 'silver';
-              blindSpan.textContent = "필터링에 감지되어 블라인드 되었습니다. ";
-              blindAlertContent.appendChild(blindSpan);
-
-              var blindA = document.createElement('a');
-              blindA.setAttribute('href', 'javascript:nothing();');
-              blindA.text = '[내용보기]';
-              blindA.nodeName = "cleanInven";
-              blindA.onclick = async function()
-              {
-                var blindAlert = this.parentNode;
-                var blindContent = this.parentNode.parentNode.querySelector('.cleaninven-blind-content');
-
-                blindAlert.style.display = "none";
-                blindContent.style.display = "";
-              }
-              blindAlertContent.appendChild(blindA);
-
-              contentNode.appendChild(blindAlertContent);
-              contentNode.appendChild(blindContent);
             }
           }
         }
