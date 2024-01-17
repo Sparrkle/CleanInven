@@ -259,7 +259,8 @@ async function initUser()
                 }
                 else if(change.type == "insert" || change.type == "update")
                 {
-                    setItem(change.data);
+                    var item = Object.assign({}, change.key, change.data);
+                    setItem(item);
                 }
             }
         },
@@ -504,10 +505,12 @@ async function setItem(data)
     if(blockList == null)
       blockList = [];
   
-    if(blockList.find(o => o.__KEY__ == data.__KEY__))
-      return;
-  
-    blockList.push(data);
+    var existItem = blockList.find(o => o.__KEY__ == data.__KEY__);
+    if(existItem)
+        Object.assign(existItem, data);
+    else
+        blockList.push(data);
+
     await LS.setItem('blockList', blockList);
 }
 
@@ -539,3 +542,8 @@ function uuidv4() {
         (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
     );
 }
+
+$(window).blur(function() {
+    lvUsers.closeEditCell();
+    lvUsers.saveEditData()
+});
