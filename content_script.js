@@ -16,12 +16,16 @@ var isFilterComment = false;
 var levelHide = 0;
 var isMobile = false;
 var isConfirmInven = false;
+var certificateReleaseTime;
 
 var currentUrl = window.location.href;
 if(currentUrl.includes("m.inven.co.kr")) // 모바일 용
   isMobile = true;
 if(currentUrl.includes("maple")) // 인증 여부 인벤 체크
+{
   isConfirmInven = true;
+  certificateReleaseTime = Date.parse("2024-06-12 12:00");
+}
 
 initialize();
 
@@ -262,7 +266,8 @@ const commentObserverCallback = function(mutationsList, observer) {
           var levelSrc = levelIcon.src;
           var userNickname = comment.querySelector('.nickname').textContent;
           var isConfirmIcon = comment.querySelector('.confirmIcon') != null;
-          if(isBlock(userNickname, levelSrc, isConfirmIcon))
+          var writeTime = Date.parse(comment.querySelector('.date').textContent.replace(/[^0-9-: ]/g, "").toString());
+          if(writetime >= certificateReleaseTime && isBlock(userNickname, levelSrc, isConfirmIcon))
           {
             var parent = comment.parentNode.parentNode;
             if(parent.parentNode.classList.contains('replyCmt') || parent.parentNode.classList.contains('bestComment'))
@@ -342,12 +347,67 @@ const observerCallback = function(mutationsList, observer) {
       {
         if(isFilterContent)
         {
-          
+          var blindContent = target.querySelector('.powerbbsBodyBlind');
+          if(blindContent) // 이미 블라인드 된 글
+            continue;
+
+          var targetNode;
+          if(isMobile)
+            targetNode = target.querySelector('#imageCollectDiv');
+          else
+            targetNode = target.querySelector('#powerbbsContent');
+
+          if(targetNode != null)
+          {
+            if(targetNode.querySelector('.cleaninven-blind-content')) // 이미 블라인드됨
+              continue;
+            var articleText = targetNode.textContent;
+            if(isFiltering(articleText))
+            {
+              var blindContent = document.createElement('div');
+              blindContent.classList.add('cleaninven-blind-content');
+              blindContent.style.display = "none";
+
+              var nodes = targetNode.childNodes;
+              while(nodes.length > 0)
+              {
+                var node = nodes[0];
+                blindContent.appendChild(node);
+              }
+
+              var blindAlertContent = document.createElement('div');
+              blindAlertContent.classList.add('cleaninven-blind-alert');
+
+              var blindSpan = document.createElement('span');
+              blindSpan.style.color = 'red';
+              blindSpan.textContent = "필터링에 감지되어 블라인드 되었습니다. ";
+              blindAlertContent.appendChild(blindSpan);
+
+              var blindA = document.createElement('a');
+              blindA.setAttribute('href', 'javascript:nothing();');
+              blindA.style.color = 'blue';
+              blindA.text = '[내용보기]';
+              blindA.nodeName = "cleanInven";
+              blindA.onclick = async function()
+              {
+                var blindAlert = document.querySelector('.cleaninven-blind-alert');
+                var blindContent = document.querySelector('.cleaninven-blind-content');
+
+                blindAlert.style.display = "none";
+                blindContent.style.display = "";
+              }
+              blindAlertContent.appendChild(blindA);
+
+              targetNode.appendChild(blindAlertContent);
+              targetNode.appendChild(blindContent);
+            }
+          }
         }
       }
       else if(target.classList.contains('inventory_content_wrap')) // 인장 확인
       {
-        if(isConfirmInven && isNotConfirmHide)
+        var articleDate = Date.parse(document.querySelector('.articleDate').textContent);
+        if(isConfirmInven && isNotConfirmHide && articleDate >= certificateReleaseTime)
         {
           var isConfimGame = target.querySelector('.iv_cont[data-tab="game_profile"]');
           if(!isConfimGame)
@@ -412,7 +472,9 @@ const observerCallback = function(mutationsList, observer) {
         var levelSrc = target.children[0].src;
         var userNickname = target.textContent.replace(/\s/g, "");
         var isConfirmIcon = target.querySelector('img[alt="인증 아이콘"]') != null;
-        if(isBlock(userNickname, levelSrc, isConfirmIcon))
+        var isWriteTime = isNaN(Date.parse(target.parentNode.querySelector('.date').textContent));
+
+        if(isWriteTime && isBlock(userNickname, levelSrc, isConfirmIcon))
           target.parentNode.style.display = "none";
         else if(isFilterTitle)
         {
@@ -430,7 +492,9 @@ const observerCallback = function(mutationsList, observer) {
           var level = levelNode.textContent.replace("Lv.", "");
           var userNickname = target.querySelector('.nick').textContent.replace(/\s/g, "");
           var isConfirmIcon = target.querySelector('img[alt="인증 아이콘"]') != null;
-          if(isBlock(userNickname, level, isConfirmIcon))
+          var isWriteTime = isNaN(Date.parse(target.parentNode.querySelector('.date').textContent));
+
+          if(isWriteTime && isBlock(userNickname, level, isConfirmIcon, null))
             target.parentNode.style.display = "none";
           else if(isFilterTitle)
           {
