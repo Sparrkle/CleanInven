@@ -64,7 +64,7 @@
     </script>
 
     <template id="settingsTemplate">
-      <div class="container" style="padding-top: 5px; grid-template-rows: 30px 1px 30px 1px 30px 1fr; row-gap: 5px; margin: 5px;">
+      <div class="container" style="padding-top: 5px; grid-template-rows: 30px 1px 30px 1px 30px 1px 30px 1fr; row-gap: 5px; margin: 5px;">
         <div class="container" style="grid-row: 1; grid-template-columns: 1fr 45px; column-gap: 5px; align-items: center;">
           <div style="grid-column: 1;">전광판 숨기기</div>
           <div style="grid-column: 2;" id="swEletric"></div>
@@ -75,7 +75,12 @@
           <div style="grid-column: 2; height: 25px;" id="tbLevel"></div>
         </div>
         <div style="grid-row: 4; background-color: #cccccc;"></div>
-        <div class="container" style="grid-row: 5; grid-template-columns: 1fr 1fr; column-gap: 5px; align-items: center;">
+        <div class="container" style="grid-row: 5; grid-template-columns: 1fr 45px; column-gap: 5px; align-items: center;">
+          <div style="grid-column: 1;">(메벤 전용) 인증 없는 사용자 숨기기</div>
+          <div style="grid-column: 2;" id="swCertification"></div>
+        </div>
+        <div style="grid-row: 6; background-color: #cccccc;"></div>
+        <div class="container" style="grid-row: 7; grid-template-columns: 1fr 1fr; column-gap: 5px; align-items: center;">
           <div style="grid-column: 1;" id="btnExportSetting"></div>
           <div style="grid-column: 2;" id="btnImportSetting"></div>
         </div>
