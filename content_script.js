@@ -9,15 +9,19 @@ var currentSiteItems = [];
 var blockStoredList = [];
 var keywordStoredList = [];
 var isEletricHide = false;
+var isNotConfirmHide = false;
 var isFilterTitle = false;
 var isFilterContent = false;
 var isFilterComment = false;
 var levelHide = 0;
 var isMobile = false;
+var isConfirmInven = false;
 
 var currentUrl = window.location.href;
 if(currentUrl.includes("m.inven.co.kr")) // 모바일 용
   isMobile = true;
+if(currentUrl.includes("maple")) // 인증 여부 인벤 체크
+  isConfirmInven = true;
 
 initialize();
 
@@ -36,6 +40,10 @@ async function initialize()
   var tempIsEletricHide = items.isEletricHide;
   if(tempIsEletricHide)
     isEletricHide = tempIsEletricHide;
+
+  var tempIsNotConfirmHide = items.isNotConfirmHide;
+  if(tempIsNotConfirmHide)
+    isNotConfirmHide = tempIsNotConfirmHide;
 
   var tempIsFilterTitle = items.isFilterTitle;
   if(tempIsFilterTitle)
@@ -192,10 +200,16 @@ function isFiltering(content)
   return false;
 }
 
-function isBlock(nickname, levelSrc)
+function isBlock(nickname, levelSrc, isConfirmIcon)
 {
   if(levelSrc != null)
   {
+    if(isNotConfirmHide && isConfirmInven)
+    {
+      if(!isConfirmIcon)
+        return true;
+    }
+
     if(isMobile)
     {
       if(levelSrc <= levelHide)
@@ -247,14 +261,15 @@ const commentObserverCallback = function(mutationsList, observer) {
         {
           var levelSrc = levelIcon.src;
           var userNickname = comment.querySelector('.nickname').textContent;
-          if(isBlock(userNickname, levelSrc))
+          var isConfirmIcon = comment.querySelector('.confirmIcon') != null;
+          if(isBlock(userNickname, levelSrc, isConfirmIcon))
           {
             var parent = comment.parentNode.parentNode;
             if(parent.parentNode.classList.contains('replyCmt') || parent.parentNode.classList.contains('bestComment'))
               comment.parentNode.style.display = "none";
             else
             {
-              if(comment.parentNode.nextSibling.classList.contains('replyCmt'))
+              if(comment.parentNode.nextSibling?.classList.contains('replyCmt'))
               {
                 comment.replaceChildren();
                 comment.innerHTML = "블라인드 된 코멘트입니다.";
@@ -327,23 +342,31 @@ const observerCallback = function(mutationsList, observer) {
       {
         if(isFilterContent)
         {
-          var blindContent = target.querySelector('.powerbbsBodyBlind');
-          if(blindContent) // 이미 블라인드 된 글
-            continue;
-
-          var targetNode;
-          if(isMobile)
-            targetNode = target.querySelector('#imageCollectDiv');
-          else
-            targetNode = target.querySelector('#powerbbsContent');
-
-          if(targetNode != null)
+          
+        }
+      }
+      else if(target.classList.contains('inventory_content_wrap')) // 인장 확인
+      {
+        if(isConfirmInven && isNotConfirmHide)
+        {
+          var isConfimGame = target.querySelector('.iv_cont[data-tab="game_profile"]');
+          if(!isConfimGame)
           {
-            if(targetNode.querySelector('.cleaninven-blind-content')) // 이미 블라인드됨
-              continue;
-            var articleText = targetNode.textContent;
-            if(isFiltering(articleText))
+            var blindContent = document.querySelector('.powerbbsBodyBlind');
+            if(blindContent) // 이미 블라인드 된 글
+              return;
+
+            var targetNode;
+            if(isMobile)
+              targetNode = document.querySelector('#imageCollectDiv');
+            else
+              targetNode = document.querySelector('#powerbbsContent');
+
+            if(targetNode != null)
             {
+              if(targetNode.querySelector('.cleaninven-blind-content')) // 이미 블라인드됨
+                return;
+
               var blindContent = document.createElement('div');
               blindContent.classList.add('cleaninven-blind-content');
               blindContent.style.display = "none";
@@ -360,7 +383,7 @@ const observerCallback = function(mutationsList, observer) {
 
               var blindSpan = document.createElement('span');
               blindSpan.style.color = 'red';
-              blindSpan.textContent = "필터링에 감지되어 블라인드 되었습니다. ";
+              blindSpan.textContent = "미인증 사용자의 글로 확인되어 블라인드 되었습니다. ";
               blindAlertContent.appendChild(blindSpan);
 
               var blindA = document.createElement('a');
@@ -388,7 +411,8 @@ const observerCallback = function(mutationsList, observer) {
       {
         var levelSrc = target.children[0].src;
         var userNickname = target.textContent.replace(/\s/g, "");
-        if(isBlock(userNickname, levelSrc))
+        var isConfirmIcon = target.querySelector('img[alt="인증 아이콘"]') != null;
+        if(isBlock(userNickname, levelSrc, isConfirmIcon))
           target.parentNode.style.display = "none";
         else if(isFilterTitle)
         {
@@ -405,7 +429,8 @@ const observerCallback = function(mutationsList, observer) {
         {
           var level = levelNode.textContent.replace("Lv.", "");
           var userNickname = target.querySelector('.nick').textContent.replace(/\s/g, "");
-          if(isBlock(userNickname, level))
+          var isConfirmIcon = target.querySelector('img[alt="인증 아이콘"]') != null;
+          if(isBlock(userNickname, level, isConfirmIcon))
             target.parentNode.style.display = "none";
           else if(isFilterTitle)
           {
@@ -423,7 +448,7 @@ const observerCallback = function(mutationsList, observer) {
         if(ul.parentNode.id == "board-electric-target")
         {
           var nickname = target.textContent.match('\\[(.*?)\\]')[1];
-          if(isBlock(nickname, null))
+          if(isBlock(nickname, null, true))
           {
             ul.removeChild(li);
           }

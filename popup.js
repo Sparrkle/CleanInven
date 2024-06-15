@@ -11,7 +11,7 @@ const LS = {
 
 var lvUsers;
 var tagify;
-var swTitleKeyword, swContentKeyword, swCommentKeyword, swEletric;
+var swTitleKeyword, swContentKeyword, swCommentKeyword, swEletric, swCertification;
 var tbLevel;
 
 $(() => {
@@ -370,6 +370,10 @@ async function initSettings()
     if(!isEletricHide)
         isEletricHide = false;
 
+    var isNotConfirmHide = await LS.getItem('isNotConfirmHide');
+    if(!isNotConfirmHide)
+        isNotConfirmHide = false;
+
     var levelHide = await LS.getItem('levelHide');
     if(!levelHide)
         levelHide = 0;
@@ -378,6 +382,13 @@ async function initSettings()
         value: isEletricHide,
         onValueChanged: function(e) {
             LS.setItem('isEletricHide', e.value);
+        }
+    }).dxSwitch('instance');
+
+    swCertification = $('#swCertification').dxSwitch({
+        value: isNotConfirmHide,
+        onValueChanged: function(e) {
+            LS.setItem('isNotConfirmHide', e.value);
         }
     }).dxSwitch('instance');
 
