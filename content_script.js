@@ -266,8 +266,13 @@ const commentObserverCallback = function(mutationsList, observer) {
           var levelSrc = levelIcon.src;
           var userNickname = comment.querySelector('.nickname').textContent;
           var isConfirmIcon = comment.querySelector('.confirmIcon') != null;
-          var writeTime = Date.parse(comment.querySelector('.date').textContent.replace(/[^0-9-: ]/g, "").toString());
-          if(writetime >= certificateReleaseTime && isBlock(userNickname, levelSrc, isConfirmIcon))
+          var writeTime;
+          if(isMobile)
+            writeTime = Date.parse("20" + comment.querySelector('.date').textContent.replace(/[^0-9-: ]/g, "").toString());
+          else
+            writeTime = Date.parse(comment.querySelector('.date').textContent.replace(/[^0-9-: ]/g, "").toString());
+
+          if(writeTime >= certificateReleaseTime && isBlock(userNickname, levelSrc, isConfirmIcon))
           {
             var parent = comment.parentNode.parentNode;
             if(parent.parentNode.classList.contains('replyCmt') || parent.parentNode.classList.contains('bestComment'))
@@ -492,9 +497,9 @@ const observerCallback = function(mutationsList, observer) {
           var level = levelNode.textContent.replace("Lv.", "");
           var userNickname = target.querySelector('.nick').textContent.replace(/\s/g, "");
           var isConfirmIcon = target.querySelector('img[alt="인증 아이콘"]') != null;
-          var isWriteTime = isNaN(Date.parse(target.parentNode.querySelector('.date').textContent));
+          var isWriteTime = isNaN(Date.parse(target.parentNode.querySelector('.time').textContent));
 
-          if(isWriteTime && isBlock(userNickname, level, isConfirmIcon, null))
+          if(isWriteTime && isBlock(userNickname, level, isConfirmIcon))
             target.parentNode.style.display = "none";
           else if(isFilterTitle)
           {
