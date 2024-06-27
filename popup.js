@@ -13,6 +13,7 @@ var lvUsers;
 var tagify;
 var swTitleKeyword, swContentKeyword, swCommentKeyword, swEletric, swCertification;
 var tbLevel;
+var popupToss;
 
 $(() => {
     initialize();
@@ -85,6 +86,28 @@ async function initUser()
     else
         blockUserList._array = [];
 
+    popupToss = $('#popupToss').dxPopup({
+        contentTemplate: '<img src="tossQR.png" style="width:250px; height:250px;"/>',
+        width: 290,
+        height: 290,
+        container: '.dx-viewport',
+        showTitle: false,
+        visible: false,
+        dragEnabled: false,
+        hideOnOutsideClick: true,
+        showCloseButton: false,
+        position: {
+            my: 'center',
+            collision: 'fit',
+        }
+    }).dxPopup('instance');
+
+    $("#divToss").dxButton({
+        onClick: () => {
+            popupToss.show();
+        }
+    });
+    
     lvUsers = $('#lvUsers').dxDataGrid({
         height: '400px',
         showBorders: true,
