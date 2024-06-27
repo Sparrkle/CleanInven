@@ -204,16 +204,21 @@ function isFiltering(content)
   return false;
 }
 
-function isBlock(nickname, levelSrc, isConfirmIcon)
+function isNotCertificateBlock(isConfirmIcon)
+{
+  if(isNotConfirmHide && isConfirmInven)
+  {
+    if(!isConfirmIcon)
+      return true;
+  }
+
+  return false;
+}
+
+function isBlock(nickname, levelSrc)
 {
   if(levelSrc != null)
   {
-    if(isNotConfirmHide && isConfirmInven)
-    {
-      if(!isConfirmIcon)
-        return true;
-    }
-
     if(isMobile)
     {
       if(levelSrc <= levelHide)
@@ -272,7 +277,7 @@ const commentObserverCallback = function(mutationsList, observer) {
           else
             writeTime = Date.parse(comment.querySelector('.date').textContent.replace(/[^0-9-: ]/g, "").toString());
 
-          if(writeTime >= certificateReleaseTime && isBlock(userNickname, levelSrc, isConfirmIcon))
+          if((writeTime >= certificateReleaseTime && isNotCertificateBlock(isConfirmIcon)) || isBlock(userNickname, levelSrc))
           {
             var parent = comment.parentNode.parentNode;
             if(parent.parentNode.classList.contains('replyCmt') || parent.parentNode.classList.contains('bestComment'))
@@ -479,7 +484,7 @@ const observerCallback = function(mutationsList, observer) {
         var isConfirmIcon = target.querySelector('img[alt="인증 아이콘"]') != null;
         var isWriteTime = isNaN(Date.parse(target.parentNode.querySelector('.date').textContent));
 
-        if(isWriteTime && isBlock(userNickname, levelSrc, isConfirmIcon))
+        if((isWriteTime && isNotCertificateBlock(isConfirmIcon)) || isBlock(userNickname, levelSrc))
           target.parentNode.style.display = "none";
         else if(isFilterTitle)
         {
@@ -499,7 +504,7 @@ const observerCallback = function(mutationsList, observer) {
           var isConfirmIcon = target.querySelector('img[alt="인증 아이콘"]') != null;
           var isWriteTime = isNaN(Date.parse(target.parentNode.querySelector('.time').textContent));
 
-          if(isWriteTime && isBlock(userNickname, level, isConfirmIcon))
+          if((isWriteTime && isNotCertificateBlock(isConfirmIcon)) || isBlock(userNickname, level))
             target.parentNode.style.display = "none";
           else if(isFilterTitle)
           {
@@ -517,7 +522,7 @@ const observerCallback = function(mutationsList, observer) {
         if(ul.parentNode.id == "board-electric-target")
         {
           var nickname = target.textContent.match('\\[(.*?)\\]')[1];
-          if(isBlock(nickname, null, true))
+          if(isBlock(nickname, null))
           {
             ul.removeChild(li);
           }
