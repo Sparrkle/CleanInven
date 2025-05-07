@@ -1,8 +1,8 @@
 const LS = {
-  getAllItems: () => chrome.storage.local.get(),
+  getAllItems: async () => await chrome.storage.local.get(),
   getItem: async key => (await chrome.storage.local.get(key))[key],
-  setItem: (key, val) => chrome.storage.local.set({[key]: val}),
-  removeItems: keys => chrome.storage.local.remove(keys),
+  setItem: async (key, val) => await chrome.storage.local.set({[key]: val}),
+  removeItems: async keys => await chrome.storage.local.remove(keys),
 };
 
 var currentSiteItems = [];
@@ -16,6 +16,7 @@ var isFilterComment = false;
 var levelHide = 0;
 var isMobile = false;
 var isConfirmInven = false;
+var isLoadItems = false;
 var certificateReleaseTime;
 
 var currentUrl = window.location.href;
@@ -26,11 +27,19 @@ if(currentUrl.includes("maple")) // 인증 여부 인벤 체크
   isConfirmInven = true;
   certificateReleaseTime = Date.parse("2024-06-12 12:00");
 }
+else if(currentUrl.includes("lostark")) // 인증 여부 인벤 체크
+{
+  isConfirmInven = true;
+  certificateReleaseTime = Date.parse("2025-05-07 15:00");
+}
 
 initialize();
 
-async function initialize()
+async function loadItems()
 {
+  if(isLoadItems)
+    return;
+
   var items = await LS.getAllItems();
 
   var blockList = items.blockList;
@@ -64,6 +73,13 @@ async function initialize()
   var tempLevelHide = items.levelHide;
   if(tempLevelHide)
     levelHide = tempLevelHide;
+
+  isLoadItems = true;
+}
+
+async function initialize()
+{
+  await loadItems();
   
   document.addEventListener("DOMContentLoaded", async function() {
   
@@ -257,7 +273,8 @@ function uuidv4() {
 }
 
 var commentObserver;
-const commentObserverCallback = function(mutationsList, observer) {
+const commentObserverCallback = async function(mutationsList, observer) {
+  await loadItems();
   for (const mutation of mutationsList) {
     var target = mutation.target;
     if(target.classList.contains('commentList1'))
@@ -346,7 +363,8 @@ const commentObserverCallback = function(mutationsList, observer) {
     }
   }
 };
-const observerCallback = function(mutationsList, observer) {
+const observerCallback = async function(mutationsList, observer) {
+  await loadItems();
   for (const mutation of mutationsList) {
       var target = mutation.target;
       if (target.id === "board-electric-target") {
@@ -485,7 +503,9 @@ const observerCallback = function(mutationsList, observer) {
         var isWriteTime = isNaN(Date.parse(target.parentNode.querySelector('.date').textContent));
 
         if((isWriteTime && isNotCertificateBlock(isConfirmIcon)) || isBlock(userNickname, levelSrc))
+        {
           target.parentNode.style.display = "none";
+        }
         else if(isFilterTitle)
         {
           var subject = target.parentNode.querySelector('.subject-link');
@@ -502,10 +522,12 @@ const observerCallback = function(mutationsList, observer) {
           var level = levelNode.textContent.replace("Lv.", "");
           var userNickname = target.querySelector('.nick').textContent.replace(/\s/g, "");
           var isConfirmIcon = target.querySelector('img[alt="인증 아이콘"]') != null;
-          var isWriteTime = isNaN(Date.parse(target.parentNode.querySelector('.time').textContent));
+          var isWriteTime = isNaN(Date.parse(target.parentNode.querySelector('.time')?.textContent));
 
           if((isWriteTime && isNotCertificateBlock(isConfirmIcon)) || isBlock(userNickname, level))
+          {
             target.parentNode.style.display = "none";
+          }
           else if(isFilterTitle)
           {
             var subject = target.querySelector('.subject');
@@ -538,5 +560,6 @@ const observerCallback = function(mutationsList, observer) {
       }
   }
 };
-const observer = new MutationObserver(observerCallback);
-observer.observe(document.documentElement, {childList: true, subtree: true });
+
+const globalObserver = new MutationObserver(observerCallback);
+globalObserver.observe(document.documentElement, {childList: true, subtree: true });
